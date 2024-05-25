@@ -1,1 +1,0 @@
-clang++-17  -Wall -Wextra -Werror -std=c++98 -g CMakeFiles/bitcoin.dir/main.cpp.o -o /workspaces/nix-dev/CPP-Module-09/ex00/bitcoin 

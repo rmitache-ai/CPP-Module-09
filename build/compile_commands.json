@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/workspaces/nix-dev/CPP-Module-09/build/ex00",
-  "command": "clang++-17    -Wall -Wextra -Werror -std=c++98 -g -std=gnu++98 -o CMakeFiles/bitcoin.dir/main.cpp.o -c /workspaces/nix-dev/CPP-Module-09/ex00/main.cpp",
-  "file": "/workspaces/nix-dev/CPP-Module-09/ex00/main.cpp",
-  "output": "ex00/CMakeFiles/bitcoin.dir/main.cpp.o"
-}
-]
