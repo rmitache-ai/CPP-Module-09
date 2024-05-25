@@ -1,1 +1,9 @@
+.clang-format
+.clang-tidy
+.gitignore
+.vscode
+.cache
 build
+CMakeLists.txt
+cpp.code-workspace
+en.subject.pdf
