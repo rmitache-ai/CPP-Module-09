@@ -1,0 +1,5 @@
+/workspaces/nix-dev/CPP-Module-09/build/CMakeFiles/edit_cache.dir
+/workspaces/nix-dev/CPP-Module-09/build/CMakeFiles/rebuild_cache.dir
+/workspaces/nix-dev/CPP-Module-09/build/ex00/CMakeFiles/bitcoin.dir
+/workspaces/nix-dev/CPP-Module-09/build/ex00/CMakeFiles/edit_cache.dir
+/workspaces/nix-dev/CPP-Module-09/build/ex00/CMakeFiles/rebuild_cache.dir
