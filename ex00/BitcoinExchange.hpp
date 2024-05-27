@@ -1,21 +1,23 @@
 #ifndef BITCOINEXCHANGE_HPP
-# define BITCOINEXCHANGE_HPP
+#define BITCOINEXCHANGE_HPP
 
-# include <iostream>
-# include <string>
+#include <fstream>
+#include <map>
+#include <string>
 
-class BitcoinExchange
-{
-	private:
-	public:
+class BitcoinExchange {
+private:
+	std::map<std::string, float> _myMap;
 
-		BitcoinExchange();
-		BitcoinExchange( BitcoinExchange const & src );
-		~BitcoinExchange();
+public:
+	BitcoinExchange();
+	BitcoinExchange(BitcoinExchange const& src);
+	~BitcoinExchange();
 
-		BitcoinExchange &operator=( BitcoinExchange const & rhs );
-		bool	isInputFileCorrect(std::ifstream& input);
+	BitcoinExchange& operator=(BitcoinExchange const& rhs);
+	void             isInputFileCorrect(std::ifstream& input);
 
+	std::map<std::string, float> getMyMap() const;
 };
 
 #endif /* ************************************************* BITCOINEXCHANGE_H */
