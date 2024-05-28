@@ -65,18 +65,20 @@ bool isValidDateFormat(const std::string& date) {
 }
 
 void checkDate(std::string beforePipe) {
+
 	if (!isValidDateFormat(beforePipe)) {
 		std::cerr << "Error: bad input: " << beforePipe
 				  << std::endl;
 		return;
 	}
 
-	short year  = 0;
-	short month = 0;
-	short day   = 0;
+	short year  = -1;
+	short month = -1;
+	short day   = -1;
 
 	std::stringstream convertToNumber;
 
+	// FIX THE POS AND END FOR THE MONTHG AND DAHY
 	convertToNumber << beforePipe.substr(0, 4);
 	convertToNumber >> year;
 	convertToNumber.clear();
@@ -109,7 +111,6 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 			checkDate(beforePipe);
 			// std::cout << beforePipe << std::endl;
 		}
-		std::cout << _myMap[beforePipe] << std::endl;
 	}
 }
 
