@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 
+
 class BitcoinExchange {
 private:
 	std::map<std::string, float> _myMap;

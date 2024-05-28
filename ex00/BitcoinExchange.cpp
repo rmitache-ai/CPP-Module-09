@@ -1,10 +1,12 @@
 #include "BitcoinExchange.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 /*
@@ -39,20 +41,60 @@ BitcoinExchange::operator=(BitcoinExchange const& rhs) {
 ** --------------------------------- METHODS ----------------------------------
 */
 
-void checkDate(std::string beforePipe) {
-	// split this into 3 values, year month day and check if less than or greater than
-	// unsigned int year         = 0;
-	// unsigned int month        = 0;
-	// unsigned int day          = 0;
-	size_t count = 0;
+bool isValidDateFormat(const std::string& date) {
+	const int SEC_DATE_DELIMITER = 7;
+	const int FIR_DATE_DELIMITER = 4;
+	const int DATE_FORMAT_LENGHT = 10;
 
-	std::cout << beforePipe << std::endl;
-	for (size_t i = 0; i < beforePipe.size(); i++) {
-		if (beforePipe[i] == '-') {
-			count++;
+	if (date.size() != DATE_FORMAT_LENGHT) {
+		return false;
+	}
+	if (date[FIR_DATE_DELIMITER] != '-'
+		|| date[SEC_DATE_DELIMITER] != '-') {
+		return false;
+	}
+	for (int i = 0; i < DATE_FORMAT_LENGHT; i++) {
+		if (i == FIR_DATE_DELIMITER || i == SEC_DATE_DELIMITER) {
+			continue;
+		}
+		if (isdigit(date[i]) == 0) {
+			return false;
 		}
 	}
-	std::cout << count << std::endl;
+	return true;
+}
+
+void checkDate(std::string beforePipe) {
+	if (!isValidDateFormat(beforePipe)) {
+		std::cerr << "Error: bad input: " << beforePipe
+				  << std::endl;
+		return;
+	}
+
+	short year  = 0;
+	short month = 0;
+	short day   = 0;
+
+	std::stringstream convertToNumber;
+
+	convertToNumber << beforePipe.substr(0, 4);
+	convertToNumber >> year;
+	convertToNumber.clear();
+	convertToNumber.str("");
+
+	convertToNumber << beforePipe.substr(5, 2);
+	convertToNumber >> month;
+	convertToNumber.clear();
+	convertToNumber.str("");
+
+	convertToNumber << beforePipe.substr(8, 2);
+	convertToNumber >> day;
+}
+
+void trimStartEnd(std::string& beforePipe) {
+	beforePipe.erase(std::remove_if(beforePipe.begin(),
+									beforePipe.end(), ::isspace),
+					 beforePipe.end());
 }
 
 void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
@@ -63,6 +105,7 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 		size_t delimiterPos = line.find("|");
 		if (delimiterPos != std::string::npos) {
 			beforePipe = line.substr(0, delimiterPos);
+			trimStartEnd(beforePipe);
 			checkDate(beforePipe);
 			// std::cout << beforePipe << std::endl;
 		}
