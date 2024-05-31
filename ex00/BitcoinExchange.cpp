@@ -42,8 +42,8 @@ BitcoinExchange::operator=(BitcoinExchange const& rhs) {
 */
 
 bool isValidDateFormat(const std::string& date) {
-	const int SEC_DATE_DELIMITER = 7;
 	const int FIR_DATE_DELIMITER = 4;
+	const int SEC_DATE_DELIMITER = 7;
 	const int DATE_FORMAT_LENGHT = 10;
 
 	if (date.size() != DATE_FORMAT_LENGHT) {
@@ -78,19 +78,29 @@ void checkDate(std::string beforePipe) {
 
 	std::stringstream convertToNumber;
 
-	// FIX THE POS AND END FOR THE MONTHG AND DAHY
-	convertToNumber << beforePipe.substr(0, 4);
+	const unsigned short YEAR_START_POS = 0;
+	const unsigned short YEAR_END_POS   = 4;
+	convertToNumber << beforePipe.substr(YEAR_START_POS,
+										 YEAR_END_POS);
 	convertToNumber >> year;
 	convertToNumber.clear();
 	convertToNumber.str("");
 
-	convertToNumber << beforePipe.substr(5, 2);
+	const unsigned short MONTH_START_POS = 6;
+	const unsigned short MONTH_END_POS   = 7;
+	convertToNumber << beforePipe.substr(MONTH_START_POS,
+										 MONTH_END_POS);
 	convertToNumber >> month;
 	convertToNumber.clear();
 	convertToNumber.str("");
 
-	convertToNumber << beforePipe.substr(8, 2);
+	const unsigned short DAY_START_POS = 8;
+	const unsigned short DAY_END_POS   = 9;
+	convertToNumber << beforePipe.substr(DAY_START_POS,
+										 DAY_END_POS);
 	convertToNumber >> day;
+	convertToNumber.clear();
+	convertToNumber.str("");
 }
 
 void trimStartEnd(std::string& beforePipe) {
@@ -99,18 +109,37 @@ void trimStartEnd(std::string& beforePipe) {
 					 beforePipe.end());
 }
 
+int countPipes(std::ifstream& input) {
+	size_t      count = 0;
+	std::string s;
+	std::getline(input, s);
+
+	for (size_t i = 0; i < s.size(); i++) {
+		if (s[i] == '|' && (isdigit(s[i + 1]) == 0)) {
+			count++;
+		}
+	}
+	return count;
+}
+
 void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 	std::string line;
 	std::string beforePipe;
-	// float       afterPipe = NAN;
+	std::string afterPipe;
+
+	if (countPipes(input) != 1) {
+		std::cout << "Error: bad input => " << input
+				  << std::endl;
+	}
 	while (std::getline(input, line) != 0) {
 		size_t delimiterPos = line.find("|");
 		if (delimiterPos != std::string::npos) {
 			beforePipe = line.substr(0, delimiterPos);
 			trimStartEnd(beforePipe);
 			checkDate(beforePipe);
-			// std::cout << beforePipe << std::endl;
 		}
+		afterPipe = line.substr(beforePipe.size() + 1);
+		std::cout << "After:  " << afterPipe << std::endl;
 	}
 }
 
