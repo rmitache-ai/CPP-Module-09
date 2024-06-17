@@ -13,7 +13,7 @@ public:
 
 	RPN& operator=(RPN const& rhs);
 
-	static void init(char* str);
+	void init(char* str);
 
 private:
 	std::stack<float> _Stack;

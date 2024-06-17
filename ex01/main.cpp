@@ -7,6 +7,11 @@ int main(int argc, char** argv) {
 	}
 	RPN rpn;
 
-	rpn.init(argv[1]);
+	if (argv[1] != NULL) {
+		rpn.init(argv[1]);
+	} else {
+		std::cerr << "Error: Argument is NULL" << std::endl;
+		return 1;
+	}
 	return 0;
 }

@@ -199,16 +199,42 @@ void checkValue(std::string afterPipe) {
 	}
 }
 
-// void updateToNearestDate(std::ifstream&          btc_database,
-// 						 std::basic_string<char> date) {
-// 	std::cout << "date not found\n";
-// 	// Placeholder logic for updating to the nearest date
-// 	// Replace with actual logic to find the nearest date
-// 	date = "2024-01-01"; // Example nearest date
-// 	(void)btc_database;
-// }
+void outputAndCompareInputWithDb(std::string date, float btc,
+								 std::ifstream& btc_database) {
+	std::map<std::string, float> btc_table;
 
-void BitcoinExchange::checkIfDateExistsInDbElseUpdateToNearest(
+	std::string line;
+	while (std::getline(btc_database, line)) {
+		std::istringstream iss(line);
+		std::string        token;
+
+		std::getline(iss, token, ',');
+		std::string dateFromFile = token;
+
+		std::getline(iss, token, ',');
+		float btcValue          = atof(token.c_str());
+		btc_table[dateFromFile] = btcValue;
+	}
+	(void)btc;
+
+	if (btc_table.find(date) != btc_table.end()) {
+		std::cout << btc * btc_table[da] << std::endl;
+	} else {
+		std::cout << "Input date not found in the database. "
+					 "Using closest lower date.\n";
+
+		std::map<std::string, float>::iterator it
+			= btc_table.lower_bound(date);
+
+		if (it != btc_table.begin()) {
+			--it;
+			std::cout << "Closest lower date in the database: "
+					  << it->first << "\n";
+		}
+	}
+}
+
+void BitcoinExchange::runCalculation(
 	std::ifstream& btc_database) {
 	std::string line;
 	(void)btc_database;
@@ -226,18 +252,17 @@ void BitcoinExchange::checkIfDateExistsInDbElseUpdateToNearest(
 		_error = false;
 	}
 	while (it != ite) {
-		std::cout << it->first << " with value of " << it->second
-				  << std::endl;
+		outputAndCompareInputWithDb(it->first, it->second,
+									btc_database);
 		++it;
 	}
-	// updateToNearestDate(btc_database, it->first);
 }
 
 void BitcoinExchange::makeCalculation() {
 
 	std::ifstream btc_database("data.csv");
 	if (btc_database.is_open()) {
-		checkIfDateExistsInDbElseUpdateToNearest(btc_database);
+		runCalculation(btc_database);
 		btc_database.close();
 	} else {
 		std::cerr << "Failed to open data.csv" << std::endl;

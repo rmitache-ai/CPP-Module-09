@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <string>
 
@@ -41,8 +40,7 @@ public:
 	std::map<std::string, float> getMyMap() const;
 	size_t                       getAt() const;
 	void                         makeCalculation();
-	void checkIfDateExistsInDbElseUpdateToNearest(
-		std::ifstream& btc_database);
+	void runCalculation(std::ifstream& btc_database);
 };
 
 #endif /* ************************************************* BITCOINEXCHANGE_H */
