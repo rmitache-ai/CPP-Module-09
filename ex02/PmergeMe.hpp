@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <deque>
-#include <iostream>
 #include <vector>
 
 #define BASE 10
@@ -72,7 +71,5 @@ public:
 		const char* what() const throw();
 	};
 };
-
-std::ostream& operator<<(std::ostream& o, PmergeMe const& i);
 
 #endif

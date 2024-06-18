@@ -72,7 +72,7 @@ PmergeMe::PmergeMe(int argc, char** argv) {
 			  << " us" << std::endl;
 }
 
-PmergeMe::PmergeMe(PmergeMe const& src) { (void)src; }
+PmergeMe::PmergeMe(PmergeMe const& src) { *this = src; }
 
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
@@ -86,18 +86,17 @@ PmergeMe::~PmergeMe() {}
 
 PmergeMe& PmergeMe::operator=(PmergeMe const& rhs) {
 	(void)rhs;
-	//if ( this != &rhs )
-	//{
-	//this->_value = rhs.getValue();
-	//}
+	if (this != &rhs) {
+		this->_deqHighEnd   = rhs._deqHighEnd;
+		this->_deqLowEnd    = rhs._deqLowEnd;
+		this->_dequePaired  = rhs._dequePaired;
+		this->_deque        = rhs._deque;
+		this->_vecHighEnd   = rhs._vecHighEnd;
+		this->_vecLowEnd    = rhs._vecLowEnd;
+		this->_vectorPaired = rhs._vectorPaired;
+		this->_vector       = rhs._vector;
+	}
 	return *this;
-}
-
-std::ostream& operator<<(std::ostream& o, PmergeMe const& i) {
-	//o << "Value = " << i.getValue();
-	(void)i;
-	(void)o;
-	return o;
 }
 
 /*
@@ -422,7 +421,7 @@ void PmergeMe::mergeInsertSortDeque() {
 }
 
 /*
-** --------------------------------- ACCESSOR ---------------------------------
+** --------------------------------- EXCEPTIONS ---------------------------------
 */
 
 const char* PmergeMe::atLeastTwoNumbersNeeded::what() const
