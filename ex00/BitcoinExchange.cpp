@@ -217,8 +217,9 @@ void outputAndCompareInputWithDb(std::string date, float btc,
 	}
 	(void)btc;
 
+	// TO BE FIXED, BUT FIRST LET'S DO
 	if (btc_table.find(date) != btc_table.end()) {
-		std::cout << btc * btc_table[da] << std::endl;
+		std::cout << btc * btc_table[date] << std::endl;
 	} else {
 		std::cout << "Input date not found in the database. "
 					 "Using closest lower date.\n";
