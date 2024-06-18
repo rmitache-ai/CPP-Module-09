@@ -5,6 +5,7 @@
 #include <ctime>
 #include <deque>
 #include <iostream>
+#include <limits>
 #include <unistd.h>
 #include <utility>
 #include <vector>
@@ -41,6 +42,9 @@ PmergeMe::PmergeMe(int argc, char** argv) {
 		if (std::find(_vector.begin(), _vector.end(), number)
 			!= _vector.end()) {
 			throw duplicate();
+		}
+		if (number > std::numeric_limits< int >::max()) {
+			throw tooBigNumber();
 		}
 		_vector.push_back(number);
 		_deque.push_back(number);
@@ -103,36 +107,38 @@ std::ostream& operator<<(std::ostream& o, PmergeMe const& i) {
 void PmergeMe::displayBefore() {
 	std::cout << "Before: ";
 
-	// size_t i = 0;
-	// if (_vector.size() >= 5) {
-	// while (i++ != 5) {
-	// std::cout << _vector[i] << " ";
-	// }
-	// std::cout << "[...]";
-	// } else {
-	for (std::vector< size_t >::iterator it = _vector.begin();
-		 it != _vector.end(); it++) {
-		std::cout << *it << " ";
+	size_t i = 0;
+	if (_vector.size() >= 5) {
+		while (i++ != 5) {
+			std::cout << _vector[i] << " ";
+		}
+		std::cout << "[...]";
+	} else {
+		for (std::vector< size_t >::iterator it
+			 = _vector.begin();
+			 it != _vector.end(); it++) {
+			std::cout << *it << " ";
+		}
 	}
-	// }
 	std::cout << std::endl;
 }
 
 void PmergeMe::displayAfter() {
 	std::cout << "After:  ";
 
-	// size_t i = 0;
-	// if (_vecHighEnd.size() >= 5) {
-	// 	while (i++ != 5) {
-	// 		std::cout << _vecHighEnd[i] << " ";
-	// 	}
-	// 	std::cout << "[...]";
-	// } else {
-	for (std::vector< int >::iterator it = _vecHighEnd.begin();
-		 it != _vecHighEnd.end(); it++) {
-		std::cout << *it << " ";
+	size_t i = 0;
+	if (_vecHighEnd.size() >= 5) {
+		while (i++ != 5) {
+			std::cout << _vecHighEnd[i] << " ";
+		}
+		std::cout << "[...]";
+	} else {
+		for (std::vector< int >::iterator it
+			 = _vecHighEnd.begin();
+			 it != _vecHighEnd.end(); it++) {
+			std::cout << *it << " ";
+		}
 	}
-	// }
 	std::cout << std::endl;
 }
 
@@ -435,6 +441,10 @@ const char* PmergeMe::nonNumeric::what() const throw() {
 
 const char* PmergeMe::duplicate::what() const throw() {
 	return "Error: Please, don't use duplicates";
+}
+
+const char* PmergeMe::tooBigNumber::what() const throw() {
+	return "Error: Please, use smaller numbers";
 }
 
 /* ************************************************************************** */

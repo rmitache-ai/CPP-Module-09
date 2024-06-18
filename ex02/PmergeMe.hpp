@@ -47,6 +47,7 @@ public:
 						 int right);
 	void mergeSortDeque(std::deque< int >& deq, int left,
 						int right);
+
 	class atLeastTwoNumbersNeeded : public std::exception {
 	public:
 		const char* what() const throw();
@@ -63,6 +64,10 @@ public:
 	};
 
 	class duplicate : public std::exception {
+	public:
+		const char* what() const throw();
+	};
+	class tooBigNumber : public std::exception {
 	public:
 		const char* what() const throw();
 	};
