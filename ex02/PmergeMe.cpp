@@ -12,7 +12,11 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-PmergeMe::PmergeMe() {}
+PmergeMe::PmergeMe()
+	: _vector(0)
+	, _vectorPaired(0)
+	, _vecHighEnd(0)
+	, _vecLowEnd(0) {}
 
 PmergeMe::PmergeMe(int argc, char** argv) {
 	const double MICROSECONDS_PER_SECOND = 1000000.0;
@@ -29,7 +33,7 @@ PmergeMe::PmergeMe(int argc, char** argv) {
 			throw positiveNumbersOnly();
 		}
 		_vector.push_back(number);
-		_deque.push_back(number);
+		// _deque.push_back(number);
 	}
 	displayBefore();
 	clock_t timeVec = 0;
@@ -123,19 +127,8 @@ void PmergeMe::sortVectorFromPairs() {
 	}
 }
 
-void PmergeMe::mergeSortVector(std::vector< int >& vec, int left,
-							   int right) {
-	if (left < right) {
-		int mid = left + (right - left) / 2;
-
-		mergeSortVector(vec, left, mid);
-		mergeSortVector(vec, mid + 1, right);
-		merge(vec, left, mid, right);
-	}
-}
-
-void PmergeMe::merge(std::vector< int >& vec, int left, int mid,
-					 int right) {
+static void merge(std::vector< int >& vec, int left, int mid,
+				  int right) {
 	int i;
 	int j;
 	int k;
@@ -146,13 +139,11 @@ void PmergeMe::merge(std::vector< int >& vec, int left, int mid,
 	int L[n1];
 	int R[n2];
 
-	// Copy data to temporary arrays
 	for (i = 0; i < n1; i++)
 		L[i] = vec[left + i];
 	for (j = 0; j < n2; j++)
 		R[j] = vec[mid + 1 + j];
 
-	// Merge the temporary arrays back into vec
 	i = 0;
 	j = 0;
 	k = left;
@@ -167,7 +158,6 @@ void PmergeMe::merge(std::vector< int >& vec, int left, int mid,
 		k++;
 	}
 
-	// Copy the remaining elements
 	while (i < n1) {
 		vec[k] = L[i];
 		i++;
@@ -181,10 +171,27 @@ void PmergeMe::merge(std::vector< int >& vec, int left, int mid,
 	}
 }
 
+void PmergeMe::mergeSortVector(std::vector< int >& vec, int left,
+							   int right) {
+	if (left < right) {
+		int mid = left + (right - left) / 2;
+
+		mergeSortVector(vec, left, mid);
+		mergeSortVector(vec, mid + 1, right);
+		merge(vec, left, mid, right);
+	}
+}
+
 std::vector< int > generateJSeq(int n) {
 	std::vector< int > jacobsthal;
 	jacobsthal.push_back(0);
-	for (int i = 2; i < n; ++i) {
+	if (n >= 1) {
+		jacobsthal.push_back(1);
+	}
+	if (n >= 2) {
+		jacobsthal.push_back(3);
+	}
+	for (int i = 3; i < n; ++i) {
 		jacobsthal.push_back(jacobsthal[i - 1]
 							 + 2 * jacobsthal[i - 2]);
 	}

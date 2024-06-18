@@ -16,7 +16,7 @@ private:
 	std::vector< int >                   _vecHighEnd;
 	std::vector< int >                   _vecLowEnd;
 
-	std::deque< size_t > _deque;
+	// std::deque< size_t > _deque;
 
 public:
 	PmergeMe();
@@ -34,8 +34,6 @@ public:
 	void sortByHighEndAndLowEnd();
 	void insertUsingJacobSequence();
 
-	void merge(std::vector< int >& vec, int left, int mid,
-			   int right);
 	void mergeSortVector(std::vector< int >& vec, int left,
 						 int right);
 
