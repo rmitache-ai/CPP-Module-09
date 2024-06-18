@@ -16,7 +16,10 @@ private:
 	std::vector< int >                   _vecHighEnd;
 	std::vector< int >                   _vecLowEnd;
 
-	// std::deque< size_t > _deque;
+	std::deque< size_t >                _deque;
+	std::deque< std::pair< int, int > > _dequePaired;
+	std::deque< int >                   _deqHighEnd;
+	std::deque< int >                   _deqLowEnd;
 
 public:
 	PmergeMe();
@@ -34,9 +37,16 @@ public:
 	void sortByHighEndAndLowEnd();
 	void insertUsingJacobSequence();
 
+	void mergeInsertSortDeque();
+	void splitDequeIntoPairs();
+	void sortDequeFromPairs();
+	void sortByHighEndAndLowEndDeque();
+	void insertUsingJacobSequenceDeque();
+
 	void mergeSortVector(std::vector< int >& vec, int left,
 						 int right);
-
+	void mergeSortDeque(std::deque< int >& deq, int left,
+						int right);
 	class atLeastTwoNumbersNeeded : public std::exception {
 	public:
 		const char* what() const throw();
@@ -48,6 +58,11 @@ public:
 	};
 
 	class nonNumeric : public std::exception {
+	public:
+		const char* what() const throw();
+	};
+
+	class duplicate : public std::exception {
 	public:
 		const char* what() const throw();
 	};

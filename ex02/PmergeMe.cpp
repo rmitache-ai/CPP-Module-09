@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <deque>
 #include <iostream>
 #include <unistd.h>
 #include <utility>
@@ -16,10 +17,15 @@ PmergeMe::PmergeMe()
 	: _vector(0)
 	, _vectorPaired(0)
 	, _vecHighEnd(0)
-	, _vecLowEnd(0) {}
+	, _vecLowEnd(0)
+	, _deque(0)
+	, _dequePaired(0)
+	, _deqHighEnd(0)
+	, _deqLowEnd(0) {}
 
 PmergeMe::PmergeMe(int argc, char** argv) {
 	const double MICROSECONDS_PER_SECOND = 1000000.0;
+
 	if (argc < 3) {
 		throw atLeastTwoNumbersNeeded();
 	}
@@ -32,18 +38,32 @@ PmergeMe::PmergeMe(int argc, char** argv) {
 		if (number < 0) {
 			throw positiveNumbersOnly();
 		}
+		if (std::find(_vector.begin(), _vector.end(), number)
+			!= _vector.end()) {
+			throw duplicate();
+		}
 		_vector.push_back(number);
-		// _deque.push_back(number);
+		_deque.push_back(number);
 	}
 	displayBefore();
 	clock_t timeVec = 0;
 	timeVec         = clock();
 	mergeInsertSortVector();
-	displayAfter();
 	timeVec = clock() - timeVec;
+	displayAfter();
 	std::cout << "Time to process a range of " << argc - 1
 			  << " elements with std::vector : "
 			  << (double)timeVec * MICROSECONDS_PER_SECOND
+					 / CLOCKS_PER_SEC
+			  << " us" << std::endl;
+
+	clock_t timeVec2 = 0;
+	timeVec2         = clock();
+	mergeInsertSortDeque();
+	timeVec2 = clock() - timeVec2;
+	std::cout << "Time to process a range of " << argc - 1
+			  << " elements with std::deque : "
+			  << (double)timeVec2 * MICROSECONDS_PER_SECOND
 					 / CLOCKS_PER_SEC
 			  << " us" << std::endl;
 }
@@ -82,23 +102,37 @@ std::ostream& operator<<(std::ostream& o, PmergeMe const& i) {
 
 void PmergeMe::displayBefore() {
 	std::cout << "Before: ";
-	;
 
+	// size_t i = 0;
+	// if (_vector.size() >= 5) {
+	// while (i++ != 5) {
+	// std::cout << _vector[i] << " ";
+	// }
+	// std::cout << "[...]";
+	// } else {
 	for (std::vector< size_t >::iterator it = _vector.begin();
 		 it != _vector.end(); it++) {
 		std::cout << *it << " ";
 	}
+	// }
 	std::cout << std::endl;
 }
 
 void PmergeMe::displayAfter() {
 	std::cout << "After:  ";
-	;
 
+	// size_t i = 0;
+	// if (_vecHighEnd.size() >= 5) {
+	// 	while (i++ != 5) {
+	// 		std::cout << _vecHighEnd[i] << " ";
+	// 	}
+	// 	std::cout << "[...]";
+	// } else {
 	for (std::vector< int >::iterator it = _vecHighEnd.begin();
 		 it != _vecHighEnd.end(); it++) {
 		std::cout << *it << " ";
 	}
+	// }
 	std::cout << std::endl;
 }
 
@@ -117,13 +151,42 @@ void PmergeMe::splitVectorIntoPairs() {
 	}
 }
 
+void PmergeMe::splitDequeIntoPairs() {
+	std::deque< int >::size_type size      = _vector.size();
+	std::deque< int >::size_type pairCount = size / 2;
+
+	for (std::deque< int >::size_type i = 0; i < pairCount;
+		 ++i) {
+		_dequePaired.push_back(
+			std::make_pair(_deque[i * 2], _deque[i * 2 + 1]));
+	}
+	if (size % 2 != 0) {
+		_dequePaired.push_back(
+			std::make_pair(_deque[size - 1], -1));
+	}
+}
+
+void swapPairInt(std::pair< int, int >& pair) {
+	if (pair.first > pair.second) {
+		int temp    = pair.first;
+		pair.first  = pair.second;
+		pair.second = temp;
+	}
+}
+
 void PmergeMe::sortVectorFromPairs() {
-	std::vector< std::pair< int, int > >::iterator it;
-	for (it = _vectorPaired.begin(); it != _vectorPaired.end();
-		 it++) {
-		if (it->first > it->second) {
-			std::swap(it->first, it->second); // USE OWN?
-		}
+	for (std::vector< std::pair< int, int > >::iterator it
+		 = _vectorPaired.begin();
+		 it != _vectorPaired.end(); ++it) {
+		swapPairInt(*it); // Call the custom swap function
+	}
+}
+
+void PmergeMe::sortDequeFromPairs() {
+	for (std::deque< std::pair< int, int > >::iterator it
+		 = _dequePaired.begin();
+		 it != _dequePaired.end(); ++it) {
+		swapPairInt(*it); // Call the custom swap function
 	}
 }
 
@@ -135,7 +198,6 @@ static void merge(std::vector< int >& vec, int left, int mid,
 	int n1 = mid - left + 1;
 	int n2 = right - mid;
 
-	// Create temporary arrays
 	int L[n1];
 	int R[n2];
 
@@ -198,6 +260,22 @@ std::vector< int > generateJSeq(int n) {
 	return jacobsthal;
 }
 
+std::deque< int > generateJSeqDeq(int n) {
+	std::deque< int > jacobsthal;
+	jacobsthal.push_back(0);
+	if (n >= 1) {
+		jacobsthal.push_back(1);
+	}
+	if (n >= 2) {
+		jacobsthal.push_back(3);
+	}
+	for (int i = 3; i < n; ++i) {
+		jacobsthal.push_back(jacobsthal[i - 1]
+							 + 2 * jacobsthal[i - 2]);
+	}
+	return jacobsthal;
+}
+
 void PmergeMe::sortByHighEndAndLowEnd() {
 	std::vector< std::pair< int, int > >::iterator it;
 	for (it = _vectorPaired.begin(); it != _vectorPaired.end();
@@ -213,6 +291,78 @@ void PmergeMe::sortByHighEndAndLowEnd() {
 		_vecLowEnd.erase(_vecLowEnd.begin());
 	} else if (!_vecHighEnd.empty() && _vecHighEnd[0] == -1) {
 		_vecHighEnd.erase(_vecHighEnd.begin());
+	}
+}
+
+static void mergeDeque(std::deque< int >& deq, int left, int mid,
+					   int right) {
+	int i;
+	int j;
+	int k;
+	int n1 = mid - left + 1;
+	int n2 = right - mid;
+
+	int L[n1];
+	int R[n2];
+
+	for (i = 0; i < n1; i++)
+		L[i] = deq[left + i];
+	for (j = 0; j < n2; j++)
+		R[j] = deq[mid + 1 + j];
+
+	i = 0;
+	j = 0;
+	k = left;
+	while (i < n1 && j < n2) {
+		if (L[i] <= R[j]) {
+			deq[k] = L[i];
+			i++;
+		} else {
+			deq[k] = R[j];
+			j++;
+		}
+		k++;
+	}
+
+	while (i < n1) {
+		deq[k] = L[i];
+		i++;
+		k++;
+	}
+
+	while (j < n2) {
+		deq[k] = R[j];
+		j++;
+		k++;
+	}
+}
+
+void PmergeMe::mergeSortDeque(std::deque< int >& deq, int left,
+							  int right) {
+	if (left < right) {
+		int mid = left + (right - left) / 2;
+
+		mergeSortDeque(deq, left, mid);
+		mergeSortDeque(deq, mid + 1, right);
+		mergeDeque(deq, left, mid, right);
+	}
+}
+
+void PmergeMe::sortByHighEndAndLowEndDeque() {
+	std::deque< std::pair< int, int > >::iterator it;
+	for (it = _dequePaired.begin(); it != _dequePaired.end();
+		 it++) {
+		_deqHighEnd.push_back(it->second);
+		_deqLowEnd.push_back(it->first);
+	}
+
+	mergeSortDeque(_deqHighEnd, 0, _deqHighEnd.size() - 1);
+	mergeSortDeque(_deqLowEnd, 0, _deqLowEnd.size() - 1);
+
+	if (!_deqLowEnd.empty() && _deqLowEnd[0] == -1) {
+		_deqLowEnd.erase(_deqLowEnd.begin());
+	} else if (!_deqHighEnd.empty() && _deqHighEnd[0] == -1) {
+		_deqHighEnd.erase(_deqHighEnd.begin());
 	}
 }
 
@@ -233,11 +383,36 @@ void PmergeMe::insertUsingJacobSequence() {
 		_vecHighEnd.insert(insertPos, _vecLowEnd[idx]);
 	}
 }
+
+void PmergeMe::insertUsingJacobSequenceDeque() {
+	std::deque< int > jacobsthal
+		= generateJSeqDeq(_deqLowEnd.size());
+
+	for (size_t i = 0;
+		 i < jacobsthal.size() && i < _deqLowEnd.size(); ++i) {
+		size_t idx = jacobsthal[i];
+		if (idx >= _deqLowEnd.size()) {
+			break;
+		}
+		std::deque< int >::iterator insertPos = std::upper_bound(
+			_deqHighEnd.begin(), _deqHighEnd.end(),
+			_deqLowEnd[idx]);
+		_deqHighEnd.insert(insertPos, _deqLowEnd[idx]);
+	}
+}
+
 void PmergeMe::mergeInsertSortVector() {
 	splitVectorIntoPairs();
 	sortVectorFromPairs();
 	sortByHighEndAndLowEnd();
 	insertUsingJacobSequence();
+}
+
+void PmergeMe::mergeInsertSortDeque() {
+	splitDequeIntoPairs();
+	sortDequeFromPairs();
+	sortByHighEndAndLowEndDeque();
+	insertUsingJacobSequenceDeque();
 }
 
 /*
@@ -256,6 +431,10 @@ const char* PmergeMe::positiveNumbersOnly::what() const throw() {
 
 const char* PmergeMe::nonNumeric::what() const throw() {
 	return "Error: Please, use numbers only";
+}
+
+const char* PmergeMe::duplicate::what() const throw() {
+	return "Error: Please, don't use duplicates";
 }
 
 /* ************************************************************************** */
