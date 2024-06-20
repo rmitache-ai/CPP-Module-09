@@ -6,7 +6,6 @@
 #include <deque>
 #include <iostream>
 #include <limits>
-#include <unistd.h>
 #include <utility>
 #include <vector>
 
@@ -301,9 +300,9 @@ void PmergeMe::sortByHighEndAndLowEnd() {
 
 static void mergeDeque(std::deque< int >& deq, int left, int mid,
 					   int right) {
-	int i;
-	int j;
-	int k;
+	int i  = 0;
+	int j  = 0;
+	int k  = 0;
 	int n1 = mid - left + 1;
 	int n2 = right - mid;
 

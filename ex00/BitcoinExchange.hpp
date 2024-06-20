@@ -23,9 +23,10 @@ enum Month {
 
 class BitcoinExchange {
 private:
-	std::map<std::string, float> _myMap;
-	size_t                       _at;
-	bool                         _error;
+	std::map< std::string, float > _myMap;
+	size_t                         _at;
+	bool                           _error;
+	bool                           _errorNoData;
 
 public:
 	BitcoinExchange();
@@ -35,11 +36,12 @@ public:
 	BitcoinExchange& operator=(BitcoinExchange const& rhs);
 	BitcoinExchange& operator+=(const BitcoinExchange& rhs);
 	void             isInputFileCorrect(std::ifstream& input);
-	void             insertWithUniqueKey(const std::string& key,
-										 float              value);
-	std::map<std::string, float> getMyMap() const;
-	size_t                       getAt() const;
-	void                         makeCalculation();
+	void
+	outputAndCompareInputWithDb(std::string date, float btc,
+								std::ifstream& btc_database);
+	std::map< std::string, float > getMyMap() const;
+	size_t                         getAt() const;
+	void                           makeCalculation();
 	void runCalculation(std::ifstream& btc_database);
 };
 

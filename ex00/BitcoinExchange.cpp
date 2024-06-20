@@ -1,5 +1,6 @@
 #include "BitcoinExchange.hpp"
 
+#include <cmath>
 #include <map>
 #include <math.h>
 
@@ -19,16 +20,12 @@
 */
 
 BitcoinExchange::BitcoinExchange()
-	: _at(0), _error(false) {
-	std::cout << "Constructor called." << std::endl;
-}
+	: _at(0), _error(false), _errorNoData(false) {}
 
-BitcoinExchange::~BitcoinExchange() {
-	std::cout << "Destructor called." << std::endl;
-}
+BitcoinExchange::~BitcoinExchange() {}
 
 BitcoinExchange::BitcoinExchange(const BitcoinExchange& src)
-	: _at(), _error() {
+	: _at(), _error(), _errorNoData() {
 	*this = src;
 }
 
@@ -114,12 +111,13 @@ int getMaxDaysInMonth(int month, int year) {
 	}
 }
 
-void checkDate(std::string beforePipe) {
+bool checkDate(std::string beforePipe) {
 
 	if (!isValidDateFormat(beforePipe)) {
 		std::cerr << "Error: bad input: " << beforePipe
 				  << std::endl;
-		return;
+
+		return false;
 	}
 
 	short year  = -1;
@@ -158,7 +156,9 @@ void checkDate(std::string beforePipe) {
 		|| month < 1) {
 		std::cerr << "Error: bad input => " << beforePipe
 				  << std::endl;
+		return false;
 	}
+	return true;
 }
 
 void trimStartEnd(std::string& beforePipe) {
@@ -180,31 +180,23 @@ float convertToFloat(const std::string& str) {
 	return result;
 }
 
-void checkValue(std::string afterPipe) {
-	long checkForMaxInt = std::atol(afterPipe.c_str());
-	if (checkForMaxInt >= std::numeric_limits<int>::max()) {
-		std::cout << "Error: too large a number." << std::endl;
-		return;
-	}
+void BitcoinExchange::outputAndCompareInputWithDb(
+	std::string date, float btc, std::ifstream& btc_database) {
+	std::map< std::string, float > btc_table;
+	bool                           firstIteration = true;
+	std::string                    line;
 
-	for (size_t i = 0; i < afterPipe.size(); i++) {
-		if (isdigit(afterPipe[i]) == 0) {
-			if (afterPipe[i] == '.') {
-				continue;
+	while (std::getline(btc_database, line) != 0) {
+		if (firstIteration) {
+			firstIteration = false;
+			if (line != "date,exchange_rate") {
+				std::cerr << "Error: Cannot find "
+							 "'date,exchange_rate' in DB"
+						  << std::endl;
+				return;
 			}
-			std::cerr << "Error: not a positive number"
-					  << std::endl;
-			return;
+			continue;
 		}
-	}
-}
-
-void outputAndCompareInputWithDb(std::string date, float btc,
-								 std::ifstream& btc_database) {
-	std::map<std::string, float> btc_table;
-
-	std::string line;
-	while (std::getline(btc_database, line)) {
 		std::istringstream iss(line);
 		std::string        token;
 
@@ -212,50 +204,58 @@ void outputAndCompareInputWithDb(std::string date, float btc,
 		std::string dateFromFile = token;
 
 		std::getline(iss, token, ',');
-		float btcValue          = atof(token.c_str());
+		float btcValue
+			= static_cast< float >(atof(token.c_str()));
 		btc_table[dateFromFile] = btcValue;
 	}
-	(void)btc;
-
-	// TO BE FIXED, BUT FIRST LET'S DO
-	if (btc_table.find(date) != btc_table.end()) {
-		std::cout << btc * btc_table[date] << std::endl;
+	std::map< std::string, float >::iterator it
+		= btc_table.lower_bound(date);
+	if (it != btc_table.end() && it->first == date) {
+		float exchangeRate = it->second;
+		float result       = btc * exchangeRate;
+		std::cout << date << " => " << btc << " = " << result
+				  << std::endl;
 	} else {
-		std::cout << "Input date not found in the database. "
-					 "Using closest lower date.\n";
-
-		std::map<std::string, float>::iterator it
-			= btc_table.lower_bound(date);
-
 		if (it != btc_table.begin()) {
 			--it;
-			std::cout << "Closest lower date in the database: "
-					  << it->first << "\n";
+			float exchangeRate = it->second;
+			float result       = btc * exchangeRate;
+			std::cout << date << " => " << btc << " = " << result
+					  << std::endl;
+		} else {
+			std::cerr << "Error: no bitcoin data => " << date
+					  << std::endl;
+			_errorNoData = true;
 		}
 	}
 }
-
 void BitcoinExchange::runCalculation(
 	std::ifstream& btc_database) {
-	std::string line;
-	(void)btc_database;
-	std::map<std::string, float>::iterator it  = _myMap.begin();
-	std::map<std::string, float>::iterator ite = _myMap.end();
+	if (_myMap.empty()) {
+		std::cerr << "Error: _myMap is empty." << std::endl;
+		return;
+	}
 
-	size_t counter                             = 0;
-	while (counter != _at) {
-		it++;
-		counter++;
-	}
-	--it;
-	if (_error) {
+	std::map< std::string, float >::iterator it = _myMap.begin();
+
+	size_t counter                              = 0;
+	while (counter < _at && it != _myMap.end()) {
 		++it;
-		_error = false;
+		++counter;
 	}
-	while (it != ite) {
+	if (it != _myMap.begin()) {
+		--it;
+	}
+	if (_errorNoData) {
+		_errorNoData = false;
+		++it;
+	}
+	if (it != _myMap.end()) {
 		outputAndCompareInputWithDb(it->first, it->second,
 									btc_database);
-		++it;
+	} else {
+		std::cerr << "Error: Iterator out of range."
+				  << std::endl;
 	}
 }
 
@@ -270,12 +270,54 @@ void BitcoinExchange::makeCalculation() {
 	}
 }
 
+bool checkForEmpty(std::string& afterPipe) {
+	if (afterPipe.empty()) {
+		std::cout << "Error: No Number found." << std::endl;
+		return true;
+	}
+	return false;
+}
+
+bool checkForPositiveNumber(std::string& afterPipe) {
+
+	if (atol(afterPipe.c_str()) < 0) {
+		std::cout << "Error: not a positive number."
+				  << std::endl;
+		return true;
+	}
+	return false;
+}
+
+bool checkForBigNumber(std::string& afterPipe) {
+	const double       MAX_BTC_INPUT = 1000.0;
+	std::istringstream iss(afterPipe);
+	double             value = NAN;
+	iss >> value;
+	if (value > MAX_BTC_INPUT) {
+		std::cout << "Error: Too large of a number."
+				  << std::endl;
+		return true;
+	}
+	return false;
+}
+
 void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 	std::string line;
 	std::string beforePipe;
 	std::string afterPipe;
+	bool        firstIteration = true;
 
 	while (std::getline(input, line) != 0) {
+		if (firstIteration) {
+			firstIteration = false;
+			if (line != "date | value") {
+				_error = true;
+				std::cerr << "Error: No valid header for input"
+						  << std::endl;
+				return;
+			}
+			continue;
+		}
 		if (countPipes(line) != 1) {
 			std::cout << "Error: bad input => " << line
 					  << std::endl;
@@ -286,7 +328,9 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 		if (delimiterPos != std::string::npos) {
 			beforePipe = line.substr(0, delimiterPos);
 			trimStartEnd(beforePipe);
-			checkDate(beforePipe);
+			if (!checkDate(beforePipe)) {
+				continue;
+			}
 			if (delimiterPos + 1 >= line.size()) {
 				std::cout << "Error: No Number found after pipe."
 						  << std::endl;
@@ -296,18 +340,9 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 			afterPipe = line.substr(delimiterPos + 1);
 			trimStartEnd(afterPipe);
 
-			if (afterPipe.empty()) {
-				std::cout << "Error: No Number found."
-						  << std::endl;
-				_error = true;
-				continue;
-			}
-			if (atol(afterPipe.c_str())
-					>= std::numeric_limits<int>::max()
-				|| atol(afterPipe.c_str())
-					   <= -std::numeric_limits<int>::max()) {
-				std::cout << "Error: Too big of a number."
-						  << std::endl;
+			if (checkForEmpty(afterPipe)
+				|| checkForPositiveNumber(afterPipe)
+				|| checkForBigNumber(afterPipe)) {
 				_error = true;
 				continue;
 			}
@@ -322,7 +357,8 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 /*
 ** --------------------------------- GETTER/SETTER ---------------------------------
 */
-std::map<std::string, float> BitcoinExchange::getMyMap() const {
+std::map< std::string, float >
+BitcoinExchange::getMyMap() const {
 	return _myMap;
 }
 

@@ -15,6 +15,7 @@ int main(int argc, const char* argv[]) {
 		std::cerr << "Error: could not open file." << std::endl;
 		return 1;
 	}
+
 	BitcoinExchange myExchange;
 
 	myExchange.isInputFileCorrect(input);
