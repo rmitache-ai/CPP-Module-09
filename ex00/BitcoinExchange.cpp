@@ -246,8 +246,9 @@ void BitcoinExchange::runCalculation(
 	if (it != _myMap.begin()) {
 		--it;
 	}
-	if (_errorNoData) {
+	if (_errorNoData || _error) {
 		_errorNoData = false;
+		_error       = false;
 		++it;
 	}
 	if (it != _myMap.end()) {
@@ -294,7 +295,7 @@ bool checkForBigNumber(std::string& afterPipe) {
 	double             value = NAN;
 	iss >> value;
 	if (value > MAX_BTC_INPUT) {
-		std::cout << "Error: Too large of a number."
+		std::cout << "Error: too large of a number."
 				  << std::endl;
 		return true;
 	}
