@@ -1,7 +1,6 @@
 #ifndef BITCOINEXCHANGE_HPP
 #define BITCOINEXCHANGE_HPP
 
-#include <cstddef>
 #include <fstream>
 #include <map>
 #include <string>
@@ -23,10 +22,7 @@ enum Month {
 
 class BitcoinExchange {
 private:
-	std::map< std::string, float > _myMap;
-	size_t                         _at;
-	bool                           _error;
-	bool                           _errorNoData;
+	std::map< std::string, float > btc_table;
 
 public:
 	BitcoinExchange();
@@ -34,15 +30,16 @@ public:
 	~BitcoinExchange();
 
 	BitcoinExchange& operator=(BitcoinExchange const& rhs);
-	BitcoinExchange& operator+=(const BitcoinExchange& rhs);
 	void             isInputFileCorrect(std::ifstream& input);
 	void
 	outputAndCompareInputWithDb(std::string date, float btc,
 								std::ifstream& btc_database);
-	std::map< std::string, float > getMyMap() const;
-	size_t                         getAt() const;
-	void                           makeCalculation();
-	void runCalculation(std::ifstream& btc_database);
+
+	void makeCalculation(std::string& date, float value);
+	void runCalculation(std::string& date, float value,
+						std::ifstream& btc_database);
+
+	std::map< std::string, float > getBtcMap() const;
 };
 
 #endif /* ************************************************* BITCOINEXCHANGE_H */

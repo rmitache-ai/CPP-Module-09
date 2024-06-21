@@ -1,6 +1,7 @@
 #include "BitcoinExchange.hpp"
 
 #include <cmath>
+#include <cstdio>
 #include <map>
 #include <math.h>
 
@@ -19,13 +20,11 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-BitcoinExchange::BitcoinExchange()
-	: _at(0), _error(false), _errorNoData(false) {}
+BitcoinExchange::BitcoinExchange() {}
 
 BitcoinExchange::~BitcoinExchange() {}
 
-BitcoinExchange::BitcoinExchange(const BitcoinExchange& src)
-	: _at(), _error(), _errorNoData() {
+BitcoinExchange::BitcoinExchange(const BitcoinExchange& src) {
 	*this = src;
 }
 
@@ -36,15 +35,8 @@ BitcoinExchange::BitcoinExchange(const BitcoinExchange& src)
 BitcoinExchange&
 BitcoinExchange::operator=(BitcoinExchange const& rhs) {
 	if (this != &rhs) {
-		this->_myMap = rhs.getMyMap();
+		this->btc_table = rhs.getBtcMap();
 	}
-	return *this;
-}
-
-BitcoinExchange&
-BitcoinExchange::operator+=(const BitcoinExchange& rhs) {
-
-	this->_at += rhs.getAt();
 	return *this;
 }
 
@@ -180,91 +172,43 @@ float convertToFloat(const std::string& str) {
 	return result;
 }
 
-void BitcoinExchange::outputAndCompareInputWithDb(
-	std::string date, float btc, std::ifstream& btc_database) {
-	std::map< std::string, float > btc_table;
-	bool                           firstIteration = true;
-	std::string                    line;
-
-	while (std::getline(btc_database, line) != 0) {
-		if (firstIteration) {
-			firstIteration = false;
-			if (line != "date,exchange_rate") {
-				std::cerr << "Error: Cannot find "
-							 "'date,exchange_rate' in DB"
-						  << std::endl;
-				return;
-			}
-			continue;
-		}
-		std::istringstream iss(line);
-		std::string        token;
-
-		std::getline(iss, token, ',');
-		std::string dateFromFile = token;
-
-		std::getline(iss, token, ',');
-		float btcValue
-			= static_cast< float >(atof(token.c_str()));
-		btc_table[dateFromFile] = btcValue;
-	}
-	std::map< std::string, float >::iterator it
-		= btc_table.lower_bound(date);
-	if (it != btc_table.end() && it->first == date) {
-		float exchangeRate = it->second;
-		float result       = btc * exchangeRate;
-		std::cout << date << " => " << btc << " = " << result
-				  << std::endl;
-	} else {
-		if (it != btc_table.begin()) {
-			--it;
-			float exchangeRate = it->second;
-			float result       = btc * exchangeRate;
-			std::cout << date << " => " << btc << " = " << result
-					  << std::endl;
-		} else {
-			std::cerr << "Error: no bitcoin data => " << date
-					  << std::endl;
-			_errorNoData = true;
-		}
-	}
-}
-void BitcoinExchange::runCalculation(
-	std::ifstream& btc_database) {
-	if (_myMap.empty()) {
-		std::cerr << "Error: _myMap is empty." << std::endl;
-		return;
-	}
-
-	std::map< std::string, float >::iterator it = _myMap.begin();
-
-	size_t counter                              = 0;
-	while (counter < _at && it != _myMap.end()) {
-		++it;
-		++counter;
-	}
-	if (it != _myMap.begin()) {
-		--it;
-	}
-	if (_errorNoData || _error) {
-		_errorNoData = false;
-		_error       = false;
-		++it;
-	}
-	if (it != _myMap.end()) {
-		outputAndCompareInputWithDb(it->first, it->second,
-									btc_database);
-	} else {
-		std::cerr << "Error: Iterator out of range."
-				  << std::endl;
-	}
-}
-
-void BitcoinExchange::makeCalculation() {
+void BitcoinExchange::makeCalculation(std::string& date,
+									  float        value) {
 
 	std::ifstream btc_database("data.csv");
 	if (btc_database.is_open()) {
-		runCalculation(btc_database);
+		bool        firstIteration = true;
+		std::string line;
+
+		while (std::getline(btc_database, line) != 0) {
+			if (firstIteration) {
+				firstIteration = false;
+				if (line != "date,exchange_rate") {
+					std::cerr << "Error: Cannot find "
+								 "'date,exchange_rate' in DB"
+							  << std::endl;
+					return;
+				}
+				continue;
+			}
+			std::istringstream iss(line);
+			std::string        token;
+
+			std::getline(iss, token, ',');
+			std::string dateFromFile = token;
+
+			std::getline(iss, token, ',');
+			float btcValue
+				= static_cast< float >(atof(token.c_str()));
+			btc_table[dateFromFile] = btcValue;
+		}
+
+		std::map< std::string, float >::iterator it
+			= btc_table.lower_bound(date);
+		float exchangeRate = it->second;
+		float result       = value * exchangeRate;
+		std::cout << date << " => " << value << " = " << result
+				  << std::endl;
 		btc_database.close();
 	} else {
 		std::cerr << "Failed to open data.csv" << std::endl;
@@ -312,17 +256,15 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 		if (firstIteration) {
 			firstIteration = false;
 			if (line != "date | value") {
-				_error = true;
 				std::cerr << "Error: No valid header for input"
 						  << std::endl;
-				return;
+				break;
 			}
 			continue;
 		}
 		if (countPipes(line) != 1) {
 			std::cout << "Error: bad input => " << line
 					  << std::endl;
-			_error = true;
 			continue;
 		}
 		size_t delimiterPos = line.find("|");
@@ -335,23 +277,18 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 			if (delimiterPos + 1 >= line.size()) {
 				std::cout << "Error: No Number found after pipe."
 						  << std::endl;
-				_error = true;
 				continue;
 			}
 			afterPipe = line.substr(delimiterPos + 1);
 			trimStartEnd(afterPipe);
-
 			if (checkForEmpty(afterPipe)
 				|| checkForPositiveNumber(afterPipe)
 				|| checkForBigNumber(afterPipe)) {
-				_error = true;
 				continue;
 			}
 		}
-		float value        = convertToFloat(afterPipe);
-		_myMap[beforePipe] = value;
-		makeCalculation();
-		++_at;
+		float value = convertToFloat(afterPipe);
+		makeCalculation(beforePipe, value);
 	}
 }
 
@@ -359,10 +296,8 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 ** --------------------------------- GETTER/SETTER ---------------------------------
 */
 std::map< std::string, float >
-BitcoinExchange::getMyMap() const {
-	return _myMap;
+BitcoinExchange::getBtcMap() const {
+	return btc_table;
 }
-
-size_t BitcoinExchange::getAt() const { return _at; }
 
 /* ************************************************************************** */
