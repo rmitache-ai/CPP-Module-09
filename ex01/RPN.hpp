@@ -1,10 +1,11 @@
 #ifndef RPN_HPP
 #define RPN_HPP
 
-#include <iostream>
 #include <stack>
 
 class RPN {
+private:
+	std::stack< float > _Stack;
 
 public:
 	RPN();
@@ -14,11 +15,6 @@ public:
 	RPN& operator=(RPN const& rhs);
 
 	void init(char* str);
-
-private:
-	std::stack<float> _Stack;
 };
-
-std::ostream& operator<<(std::ostream& o, RPN const& i);
 
 #endif /* ************************************************************* RPN_H */

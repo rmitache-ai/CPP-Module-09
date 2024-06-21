@@ -11,8 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
-#include <limits>
 #include <sstream>
 #include <string>
 
@@ -205,9 +205,14 @@ void BitcoinExchange::makeCalculation(std::string& date,
 
 		std::map< std::string, float >::iterator it
 			= btc_table.lower_bound(date);
+		if (it != btc_table.begin()
+			&& (it == btc_table.end() || it->first != date)) {
+			--it; // Move to the previous date
+		}
 		float exchangeRate = it->second;
 		float result       = value * exchangeRate;
-		std::cout << date << " => " << value << " = " << result
+		std::cout << date << " => " << value << " = "
+				  << std::fixed << std::setprecision(2) << result
 				  << std::endl;
 		btc_database.close();
 	} else {
@@ -224,11 +229,28 @@ bool checkForEmpty(std::string& afterPipe) {
 }
 
 bool checkForPositiveNumber(std::string& afterPipe) {
-
 	if (atol(afterPipe.c_str()) < 0) {
 		std::cout << "Error: not a positive number."
 				  << std::endl;
 		return true;
+	}
+
+	int dotCount = 0;
+	for (size_t i = 0; i < afterPipe.length(); ++i) {
+		if (afterPipe[i] == '.') {
+			dotCount++;
+			if (dotCount > 1) {
+				std::cout << "Error: Invalid number"
+						  << std::endl;
+				return true;
+			}
+			continue;
+		}
+		if (std::isdigit(afterPipe[i]) == 0) {
+			std::cout << "Error: please use numbers as values"
+					  << std::endl;
+			return true;
+		}
 	}
 	return false;
 }
