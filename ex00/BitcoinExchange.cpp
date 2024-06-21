@@ -207,7 +207,7 @@ void BitcoinExchange::makeCalculation(std::string& date,
 			= btc_table.lower_bound(date);
 		if (it != btc_table.begin()
 			&& (it == btc_table.end() || it->first != date)) {
-			--it; // Move to the previous date
+			--it;
 		}
 		float exchangeRate = it->second;
 		float result       = value * exchangeRate;
