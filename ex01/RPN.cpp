@@ -17,7 +17,6 @@ RPN::RPN(const RPN& src)
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-
 RPN::~RPN() {}
 
 /*
@@ -36,8 +35,8 @@ RPN& RPN::operator=(RPN const& rhs) {
 */
 
 void RPN::init(char* str) {
-	float tmp1 = 0;
-	float tmp2 = 0;
+	int tmp1 = 0;
+	int tmp2 = 0;
 
 	while (*str != 0) {
 		if (std::isspace(*str) != 0) {
@@ -45,7 +44,7 @@ void RPN::init(char* str) {
 			continue;
 		}
 		if (std::isdigit(*str) != 0) {
-			_Stack.push(static_cast< float >(atof(str)));
+			_Stack.push(static_cast< int >(std::atoi(str)));
 			str++;
 			continue;
 		}

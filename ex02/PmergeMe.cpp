@@ -104,42 +104,41 @@ PmergeMe& PmergeMe::operator=(PmergeMe const& rhs) {
 
 void PmergeMe::displayBefore() {
 	std::cout << "Before: ";
+	const size_t MAX_OUTPUT = 5;
 
-	size_t i = 0;
-	if (_vector.size() >= 5) {
-		while (i++ != 5) {
-			std::cout << _vector[i] << " ";
+	size_t i                = 0;
+	for (std::vector< size_t >::iterator it = _vector.begin();
+		 it != _vector.end(); it++) {
+		std::cout << *it << " ";
+		i++;
+		if (i == MAX_OUTPUT) {
+			break;
 		}
+	}
+	if (_vector.size() > MAX_OUTPUT) {
 		std::cout << "[...]";
-	} else {
-		for (std::vector< size_t >::iterator it
-			 = _vector.begin();
-			 it != _vector.end(); it++) {
-			std::cout << *it << " ";
-		}
 	}
 	std::cout << std::endl;
 }
 
 void PmergeMe::displayAfter() {
 	std::cout << "After:  ";
+	const size_t MAX_OUTPUT = 5;
 
-	size_t i = 0;
-	if (_vecHighEnd.size() >= 5) {
-		while (i++ != 5) {
-			std::cout << _vecHighEnd[i] << " ";
+	size_t i                = 0;
+	for (std::vector< int >::iterator it = _vecHighEnd.begin();
+		 it != _vecHighEnd.end(); it++) {
+		std::cout << *it << " ";
+		i++;
+		if (i == MAX_OUTPUT) {
+			break;
 		}
+	}
+	if (_vecHighEnd.size() > MAX_OUTPUT) {
 		std::cout << "[...]";
-	} else {
-		for (std::vector< int >::iterator it
-			 = _vecHighEnd.begin();
-			 it != _vecHighEnd.end(); it++) {
-			std::cout << *it << " ";
-		}
 	}
 	std::cout << std::endl;
 }
-
 void PmergeMe::splitVectorIntoPairs() {
 	std::vector< int >::size_type size      = _vector.size();
 	std::vector< int >::size_type pairCount = size / 2;
@@ -182,7 +181,7 @@ void PmergeMe::sortVectorFromPairs() {
 	for (std::vector< std::pair< int, int > >::iterator it
 		 = _vectorPaired.begin();
 		 it != _vectorPaired.end(); ++it) {
-		swapPairInt(*it); // Call the custom swap function
+		swapPairInt(*it);
 	}
 }
 
@@ -190,7 +189,7 @@ void PmergeMe::sortDequeFromPairs() {
 	for (std::deque< std::pair< int, int > >::iterator it
 		 = _dequePaired.begin();
 		 it != _dequePaired.end(); ++it) {
-		swapPairInt(*it); // Call the custom swap function
+		swapPairInt(*it);
 	}
 }
 
@@ -374,8 +373,7 @@ void PmergeMe::insertUsingJacobSequence() {
 	std::vector< int > jacobsthal
 		= generateJSeq(_vecLowEnd.size());
 
-	for (size_t i = 0;
-		 i < jacobsthal.size() && i < _vecLowEnd.size(); ++i) {
+	for (size_t i = 0; i < jacobsthal.size(); ++i) {
 		size_t idx = jacobsthal[i];
 		if (idx >= _vecLowEnd.size()) {
 			break;
@@ -385,6 +383,18 @@ void PmergeMe::insertUsingJacobSequence() {
 							   _vecHighEnd.end(),
 							   _vecLowEnd[idx]);
 		_vecHighEnd.insert(insertPos, _vecLowEnd[idx]);
+	}
+	// Ensure all elements are inserted
+	for (size_t i = 0; i < _vecLowEnd.size(); ++i) {
+		if (std::find(_vecHighEnd.begin(), _vecHighEnd.end(),
+					  _vecLowEnd[i])
+			== _vecHighEnd.end()) {
+			std::vector< int >::iterator insertPos
+				= std::upper_bound(_vecHighEnd.begin(),
+								   _vecHighEnd.end(),
+								   _vecLowEnd[i]);
+			_vecHighEnd.insert(insertPos, _vecLowEnd[i]);
+		}
 	}
 }
 
@@ -402,6 +412,18 @@ void PmergeMe::insertUsingJacobSequenceDeque() {
 			_deqHighEnd.begin(), _deqHighEnd.end(),
 			_deqLowEnd[idx]);
 		_deqHighEnd.insert(insertPos, _deqLowEnd[idx]);
+	}
+	// Ensure all elements from _deqLowEnd are in _deqHighEnd
+	for (size_t i = 0; i < _deqLowEnd.size(); ++i) {
+		if (std::find(_deqHighEnd.begin(), _deqHighEnd.end(),
+					  _deqLowEnd[i])
+			== _deqHighEnd.end()) {
+			std::deque< int >::iterator insertPos
+				= std::upper_bound(_deqHighEnd.begin(),
+								   _deqHighEnd.end(),
+								   _deqLowEnd[i]);
+			_deqHighEnd.insert(insertPos, _deqLowEnd[i]);
+		}
 	}
 }
 
