@@ -23,6 +23,7 @@ enum Month {
 class BitcoinExchange {
 private:
 	std::map< std::string, float > btc_table;
+	bool	_canRead;
 
 public:
 	BitcoinExchange();

@@ -20,7 +20,7 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-BitcoinExchange::BitcoinExchange() {}
+BitcoinExchange::BitcoinExchange() : _canRead(true) {}
 
 BitcoinExchange::~BitcoinExchange() {}
 
@@ -176,6 +176,9 @@ void BitcoinExchange::makeCalculation(std::string& date,
 									  float        value) {
 
 	std::ifstream btc_database("data.csv");
+	if (_canRead == false){
+		return ;
+	}
 	if (btc_database.is_open()) {
 		bool        firstIteration = true;
 		std::string line;
@@ -217,6 +220,7 @@ void BitcoinExchange::makeCalculation(std::string& date,
 		btc_database.close();
 	} else {
 		std::cerr << "Failed to open data.csv" << std::endl;
+		_canRead = false;
 	}
 }
 
@@ -274,7 +278,7 @@ void BitcoinExchange::isInputFileCorrect(std::ifstream& input) {
 	std::string afterPipe;
 	bool        firstIteration = true;
 
-	while (std::getline(input, line) != 0) {
+	while (std::getline(input, line) != 0 && _canRead == true) {
 		if (firstIteration) {
 			firstIteration = false;
 			if (line != "date | value") {
