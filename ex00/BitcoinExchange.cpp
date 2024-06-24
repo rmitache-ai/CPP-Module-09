@@ -190,6 +190,7 @@ void BitcoinExchange::makeCalculation(std::string& date,
 					std::cerr << "Error: Cannot find "
 								 "'date,exchange_rate' in DB"
 							  << std::endl;
+					_canRead = false;
 					return;
 				}
 				continue;
