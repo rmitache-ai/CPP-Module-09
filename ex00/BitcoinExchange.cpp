@@ -176,7 +176,7 @@ void BitcoinExchange::makeCalculation(std::string& date,
 									  float        value) {
 
 	std::ifstream btc_database("data.csv");
-	if (_canRead == false){
+	if (!_canRead){
 		return ;
 	}
 	if (btc_database.is_open()) {
